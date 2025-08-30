@@ -8,9 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- State Management ---
     let messages = []; // Stores the entire conversation history
+
     const llmProvider = new LlmProvider({
         container: '#llm-provider-container',
-        // IMPORTANT: You must set your API keys here or through the UI
+        // ⚠️ SECURITY WARNING: This key was exposed publicly.
+        // It is critical that you DELETE this key from your OpenAI account
+        // and create a NEW one to replace the one below.
+        keys: {
+           openai: "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"
+        }
     });
 
     // --- Tool Definitions (OpenAI Format) ---
