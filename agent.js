@@ -1,8 +1,6 @@
-// agent.js - Hardcoded Keys Version
-
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    // AI Pipe key for Google Search & other tools
+    // IMPORTANT: Get your free API key from https://aipipe.ai and paste it here.
     const AIPIPE_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImthdXRpa3N0dWR5QGdtYWlsLmNvbSJ9.nWSOYUOdkRUMhg3g4BB17rBf9s-UXD09PiR0UR_mMlQ';
 
     // --- DOM ELEMENTS ---
@@ -11,23 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInput = document.getElementById('user-input');
     const alertContainer = document.getElementById('alert-container');
 
-    // --- LLM & AGENT INITIALIZATION (WITH HARDCODED KEYS) ---
-    const llmProvider = new LlmProvider({
-        // Set the provider you want to use, e.g., "groq", "openai"
-        initialProvider: "groq", 
-
-        // Paste your LLM API key here (e.g., your Groq or OpenAI key)
-        initialApiKey: "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" 
-    });
+    // --- LLM & AGENT INITIALIZATION ---
+    // This creates the UI widget for the user to enter their key.
+    const llmProvider = new LlmProvider(); 
     
-    // Check if the provider was successfully initialized
-    if (!llmProvider.provider() || !llmProvider.apiKey()) {
-        showAlert("LLM Provider could not be initialized. Check hardcoded keys in agent.js.", "danger");
-    }
-
     let messages = [{
         role: 'system',
-        content: 'You are a helpful assistant with access to tools. Use them to answer questions.'
+        content: 'You are a helpful assistant. You have access to a set of tools to answer user questions. When you receive the results of a tool call, use them to formulate your response. If the results are insufficient, you can call another tool. Once you have enough information to answer the user fully, provide the final answer without making any more tool calls.'
     }];
 
     // --- TOOL DEFINITIONS ---
@@ -66,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const llm = llmProvider.llm();
             if (!llm) {
-                showAlert('LLM provider not set. Please check your hardcoded keys in agent.js.');
+                showAlert('Please select an LLM provider and enter your API key in the top-right corner.');
                 removeThinkingIndicator();
                 return;
             }
@@ -122,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- TOOL IMPLEMENTATIONS ---
     async function executeGoogleSearch(args) {
-        if (!AIPIPE_API_KEY || AIPIPE_API_KEY === 'YOUR_AIPIPE_API_KEY_HERE') throw new Error("AI Pipe API key not configured.");
+        if (!AIPIPE_API_KEY || AIPIPE_API_KEY === 'YOUR_AIPIPE_API_KEY_HERE') throw new Error("AI Pipe API key not configured in agent.js.");
         const response = await fetch('https://aipipe.ai/api/v1/proxy/google_search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AIPIPE_API_KEY}` },
