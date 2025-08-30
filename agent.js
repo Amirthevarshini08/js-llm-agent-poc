@@ -1,6 +1,8 @@
+// agent.js - Hardcoded Keys Version
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    // IMPORTANT: Get your free API key from https://aipipe.ai and paste it here.
+    // AI Pipe key for Google Search & other tools
     const AIPIPE_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImthdXRpa3N0dWR5QGdtYWlsLmNvbSJ9.nWSOYUOdkRUMhg3g4BB17rBf9s-UXD09PiR0UR_mMlQ';
 
     // --- DOM ELEMENTS ---
@@ -9,12 +11,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInput = document.getElementById('user-input');
     const alertContainer = document.getElementById('alert-container');
 
-    // --- LLM & AGENT INITIALIZATION ---
-    // This will now correctly find the #llm-provider-selector div
-    const llmProvider = new LlmProvider(); 
+    // --- LLM & AGENT INITIALIZATION (WITH HARDCODED KEYS) ---
+    const llmProvider = new LlmProvider({
+        // Set the provider you want to use, e.g., "groq", "openai"
+        initialProvider: "groq", 
+
+        // Paste your LLM API key here (e.g., your Groq or OpenAI key)
+        initialApiKey: "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" 
+    });
+    
+    // Check if the provider was successfully initialized
+    if (!llmProvider.provider() || !llmProvider.apiKey()) {
+        showAlert("LLM Provider could not be initialized. Check hardcoded keys in agent.js.", "danger");
+    }
+
     let messages = [{
         role: 'system',
-        content: 'You are a helpful assistant. You have access to a set of tools to answer user questions. When you receive the results of a tool call, use them to formulate your response. If the results are insufficient, you can call another tool. Once you have enough information to answer the user fully, provide the final answer without making any more tool calls.'
+        content: 'You are a helpful assistant with access to tools. Use them to answer questions.'
     }];
 
     // --- TOOL DEFINITIONS ---
@@ -23,70 +36,26 @@ document.addEventListener('DOMContentLoaded', () => {
         function: {
             name: 'google_search',
             description: 'Get search result snippets from Google for a given query.',
-            parameters: {
-                type: 'object',
-                properties: {
-                    query: {
-                        type: 'string',
-                        description: 'The search query to send to Google.'
-                    },
-                },
-                required: ['query'],
-            },
-        },
-    }, {
-        type: 'function',
-        function: {
-            name: 'aipipe_run',
-            description: 'Runs a specific AI Pipe data workflow by its ID.',
-            parameters: {
-                type: 'object',
-                properties: {
-                    pipe_id: {
-                        type: 'string',
-                        description: 'The ID of the AI Pipe to run (e.g., "Pn38L1q").'
-                    },
-                    input_data: {
-                        type: 'object',
-                        description: 'The JSON data to send as input to the pipe.',
-                        properties: {
-                            text: { type: 'string' }
-                        },
-                        required: ["text"]
-                    },
-                },
-                required: ['pipe_id', 'input_data'],
-            },
+            parameters: { type: 'object', properties: { query: { type: 'string', description: 'The search query.' } }, required: ['query'] },
         },
     }, {
         type: 'function',
         function: {
             name: 'execute_javascript',
-            description: 'Executes a snippet of JavaScript code in a sandboxed environment and returns the result. Use this for calculations or simple manipulations. Do not use for DOM access.',
-            parameters: {
-                type: 'object',
-                properties: {
-                    code: {
-                        type: 'string',
-                        description: 'The JavaScript code to execute. Must be an expression that returns a value.',
-                    },
-                },
-                required: ['code'],
-            },
+            description: 'Executes a snippet of JavaScript code and returns the result.',
+            parameters: { type: 'object', properties: { code: { type: 'string', description: 'The JavaScript code to execute.' } }, required: ['code'] },
         },
-    }, ];
+    }];
 
     // --- EVENT LISTENERS ---
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const userMessage = userInput.value.trim();
         if (!userMessage) return;
-
         messages.push({ role: 'user', content: userMessage });
         addMessageToUI('user', userMessage);
         userInput.value = '';
         toggleInput(false);
-
         await runConversation();
         toggleInput(true);
     });
@@ -97,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const llm = llmProvider.llm();
             if (!llm) {
-                showAlert('Please select an LLM provider and enter your API key.');
+                showAlert('LLM provider not set. Please check your hardcoded keys in agent.js.');
                 removeThinkingIndicator();
                 return;
             }
@@ -121,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error during conversation:', error);
-            showAlert(`An error occurred: ${error.message}`);
+            showAlert(`An API or tool error occurred: ${error.message}`);
         } finally {
             removeThinkingIndicator();
         }
@@ -137,9 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'google_search':
                     result = await executeGoogleSearch(args);
                     break;
-                case 'aipipe_run':
-                    result = await executeAiPipe(args);
-                    break;
                 case 'execute_javascript':
                     result = await executeJsCode(args);
                     break;
@@ -151,25 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const resultString = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
         addMessageToUI('tool-result', `✅ Result from ${functionName}:\n${resultString}`);
-        return {
-            tool_call_id: toolCall.id,
-            role: 'tool',
-            name: functionName,
-            content: resultString,
-        };
+        return { tool_call_id: toolCall.id, role: 'tool', name: functionName, content: resultString };
     }
 
     // --- TOOL IMPLEMENTATIONS ---
     async function executeGoogleSearch(args) {
-        if (AIPIPE_API_KEY === 'YOUR_AIPIPE_API_KEY_HERE') {
-            throw new Error("AI Pipe API key not configured in agent.js.");
-        }
+        if (!AIPIPE_API_KEY || AIPIPE_API_KEY === 'YOUR_AIPIPE_API_KEY_HERE') throw new Error("AI Pipe API key not configured.");
         const response = await fetch('https://aipipe.ai/api/v1/proxy/google_search', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${AIPIPE_API_KEY}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AIPIPE_API_KEY}` },
             body: JSON.stringify({ query: args.query })
         });
         if (!response.ok) throw new Error(`Google Search API failed with status ${response.status}`);
@@ -177,29 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return data.items?.map(item => ({ title: item.title, snippet: item.snippet })).slice(0, 5) || "No results found.";
     }
 
-    async function executeAiPipe(args) {
-        if (AIPIPE_API_KEY === 'YOUR_AIPIPE_API_KEY_HERE') {
-            throw new Error("AI Pipe API key not configured in agent.js.");
-        }
-        const response = await fetch(`https://aipipe.ai/api/v1/pipe/${args.pipe_id}/run`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${AIPIPE_API_KEY}`
-            },
-            body: JSON.stringify(args.input_data)
-        });
-        if (!response.ok) throw new Error(`AI Pipe API failed with status ${response.status}`);
-        return await response.json();
-    }
-
     async function executeJsCode(args) {
-        try {
-            const result = new Function(`'use strict'; return (${args.code})`)();
-            return result;
-        } catch (error) {
-            return `Error: ${error.message}`;
-        }
+        try { return new Function(`'use strict'; return (${args.code})`)(); }
+        catch (error) { return `Error: ${error.message}`; }
     }
 
     // --- UI HELPER FUNCTIONS ---
@@ -212,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatWindow.appendChild(messageElement);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
-
     function addThinkingIndicator() {
         const indicator = document.createElement('div');
         indicator.id = 'thinking-indicator';
@@ -221,27 +156,17 @@ document.addEventListener('DOMContentLoaded', () => {
         chatWindow.appendChild(indicator);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
-
     function removeThinkingIndicator() {
         const indicator = document.getElementById('thinking-indicator');
-        if (indicator) {
-            indicator.remove();
-        }
+        if (indicator) indicator.remove();
     }
-
     function toggleInput(enabled) {
         userInput.disabled = !enabled;
         chatForm.querySelector('button').disabled = !enabled;
     }
-
     function showAlert(message, type = 'danger') {
         const wrapper = document.createElement('div');
-        wrapper.innerHTML = [
-            `<div class="alert alert-${type} alert-dismissible fade show" role="alert">`,
-            `   <div>${message}</div>`,
-            '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
-            '</div>'
-        ].join('');
+        wrapper.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert"><div>${message}</div><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
         alertContainer.append(wrapper);
     }
 });
