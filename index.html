@@ -10,7 +10,7 @@
 <body>
     <div class="container-fluid vh-100 d-flex flex-column p-0">
         <header class="p-3 bg-dark text-white shadow-sm">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items_center">
                 <h4 class="mb-0">🤖 LLM Agent Proof-of-Concept</h4>
                 <div id="llm-provider-selector" style="min-width: 300px;"></div>
             </div>
@@ -18,8 +18,7 @@
 
         <div id="alert-container" class="position-absolute top-0 end-0 p-3" style="z-index: 1050;"></div>
 
-        <main id="chat-window" class="flex-grow-1 p-3 overflow-auto">
-            </main>
+        <main id="chat-window" class="flex-grow-1 p-3 overflow-auto"></main>
 
         <footer class="p-3 bg-light border-top">
             <form id="chat-form" class="d-flex">
@@ -30,16 +29,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-llm-provider@0.1/dist/bootstrap-llm-provider.bundle.min.js"></script>
     
-    <script>
-    /*!
-    * bootstrap-llm-provider v0.1.0
-    * Copyright 2024-2024 bootstrap-llm-provider
-    * Licensed under MIT (https://github.com/thx/bootstrap-llm-provider/blob/main/LICENSE)
-    */
-    !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).LlmProvider=e()}(this,(function(){"use strict";const t={openai:{name:"OpenAI",url:"https://api.openai.com/v1",apiKeyUrl:"https://platform.openai.com/api-keys",models:["gpt-4o","gpt-4-turbo","gpt-3.5-turbo"]},groq:{name:"Groq",url:"https://api.groq.com/openai/v1",apiKeyUrl:"https://console.groq.com/keys",models:["llama3-8b-8192","llama3-70b-8192","mixtral-8x7b-32768","gemma-7b-it"]},cohere:{name:"Cohere",url:"https://api.cohere.com/v1",apiKeyUrl:"https://dashboard.cohere.com/api-keys",models:["command-r-plus","command-r","command","command-light"]},google:{name:"Google AI",url:"https://generativelanguage.googleapis.com/v1beta",apiKeyUrl:"https://makersuite.google.com/app/apikey",models:["gemini-1.5-pro-latest","gemini-pro"]}},e="llm-provider",s="llm-provider-api-key",i="llm-provider-model",r="chat/completions",o="models",a="generateContent",n={role:"user",parts:[{text:null}]},l={role:"model",parts:[{text:null}]},c={tool_calls:null},d={functionCall:null},h=t=>t.candidates[0].content.parts[0].text,p=t=>t.choices[0].message.content,u=t=>t.choices[0].message.tool_calls,m=t=>t.text;class g{constructor(t={}){this._element=document.getElementById("llm-provider-selector"),this._config=this._getConfig(t),this._createUi()}llm(){const s=this.provider();return s?new f({provider:s,apiKey:this.apiKey(),model:this.model()}):null}provider(){return localStorage.getItem(e)}apiKey(){return localStorage.getItem(s)}model(){return localStorage.getItem(i)}_getConfig(e){return{...{providers:t,initialProvider:null,initialApiKey:null},...e}}_createUi(){const t=this._config.initialProvider||localStorage.getItem(e),s=this._config.initialApiKey||localStorage.getItem(s);t&&localStorage.setItem("llm-provider",t),s&&localStorage.setItem("llm-provider-api-key",s);const i=document.createElement("div");i.className="input-group";const r=document.createElement("select");r.className="form-select",r.id="llmProviderSelect";const o=document.createElement("option");o.value="",o.textContent="Select a provider",o.selected=null==t,o.disabled=null!=t,r.appendChild(o),Object.keys(this._config.providers).forEach((e=>{const s=this._config.providers[e],i=document.createElement("option");i.value=e,i.textContent=s.name,i.selected=e==t,r.appendChild(i)})),i.appendChild(r);const a=document.createElement("input");a.type="password",a.className="form-control",a.id="llmProviderApiKey",a.placeholder="API Key",a.value=s||"",a.style.display=t?"block":"none",i.appendChild(a);const n=document.createElement("a");n.className="btn btn-outline-secondary",n.id="llmProviderApiKeyLink",n.target="_blank",n.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-key" viewBox="0 0 16 16"><path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 9.5a.5.5 0 0 1-.354-.146L7.293 9l-.646.647a.5.5 0 0 1-.708 0L5.293 9l-.646.647a.5.5 0 0 1-.708 0L3.293 9l-.646.647a.5.5 0 0 1-.708 0L1.293 9l-.646.647A.5.5 0 0 1 0 9.5a.5.5 0 0 1-.354-.146L-.707 8.707A.5.5 0 0 1-.5 8H.5a.5.5 0 0 1 .354.146L1.293 8.5l.646-.647a.5.5 0 0 1 .708 0L3.293 8.5l.646-.647a.5.5 0 0 1 .708 0L5.293 8.5l.646-.647a.5.5 0 0 1 .708 0L7.293 8.5l.646-.647a.5.5 0 0 1 .708 0L9 8.5l.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0L15 7.207l.646.647a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.354.146H7.465A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>',n.style.display=t?"block":"none",n.href=this._config.providers[t]?.apiKeyUrl||"#",i.appendChild(n),this._element.appendChild(i),r.addEventListener("change",(t=>{const s=t.target.value;localStorage.setItem(e,s),a.style.display="block",n.style.display="block",n.href=this._config.providers[s]?.apiKeyUrl||"#",localStorage.removeItem("llm-provider-api-key"),a.value=""})),a.addEventListener("input",(t=>{localStorage.setItem(s,t.target.value)}))}static getInstance(t){return g.instance||(g.instance=new g(t)),g.instance}}class f{constructor(e){const{provider:s,apiKey:i,model:r}=e,o=t[s].url;this.chat=new y({url:o,apiKey:i,model:r,provider:s})}}class y{constructor(t){const{url:e,apiKey:s,model:i,provider:a}=t;this._url=e,this._apiKey=s,this._model=i||"default",this._provider=a}async create(t){const e=this._isGoogleProvider()?this._transformToGoogle(t):t;return this._isGoogleProvider()?this._callGoogleApi(e):this._callApi(e)}_isGoogleProvider(){return"google"===this._provider}_callApi(t){return fetch(`${this._url}/${r}`,{method:"POST",headers:this._getHeaders(),body:JSON.stringify(t)}).then((t=>{if(!t.ok)throw new Error(`HTTP error! status: ${t.status}`);return t.json()}))}_callGoogleApi(t){return fetch(`${this._url}/${o}/${this._model}:${a}`,{method:"POST",headers:this._getHeadersGoogle(),body:JSON.stringify(t)}).then((t=>{if(!t.ok)throw new Error(`HTTP error! status: ${t.status}`);return t.json()})).then((t=>this._transformFromGoogle(t)))}_getHeaders(){return{"Content-Type":"application/json",Authorization:`Bearer ${this._apiKey}`}}_getHeadersGoogle(){return{"Content-Type":"application/json","x-goog-api-key":this._apiKey}}_transformToGoogle(t){const e=t.messages.map((t=>"user"===t.role?(n.parts[0].text=t.content,n):"model"===t.role?(l.parts[0].text=t.content,l):void 0)).filter((t=>void 0!==t));return{contents:e}}_transformFromGoogle(t){let e;return e="tool_calls"in t?c:d,t.choices=[{message:{content:h(t),...e,role:"assistant"},index:0}],t.model=this._model,t.object="chat.completion",t.usage={prompt_tokens:null,completion_tokens:null,total_tokens:null},t}}return g}));
-    </script>
-    
-    <script src="agent.js"></script>
+    <script src="agent.js?v=3"></script>
 </body>
 </html>
