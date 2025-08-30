@@ -61,6 +61,31 @@
                 { type: 'function', function: { name: 'execute_javascript', description: 'Executes a snippet of JavaScript code and returns the result.', parameters: { type: 'object', properties: { code: { type: 'string', description: 'The JavaScript code to execute.' } }, required: ['code'] } } }
             ];
 
+            // **** NEW CODE BLOCK TO FIX THE '400 BAD REQUEST' ERROR ****
+            const defaultModels = {
+                openai: "gpt-3.5-turbo",
+                groq: "llama3-8b-8192",
+                cohere: "command-light",
+                google: "gemini-1.5-pro-latest"
+            };
+            // This sets a default model as soon as the page loads if one is already selected
+            if (llmProvider.provider() && !llmProvider.model()) {
+                const defaultModel = defaultModels[llmProvider.provider()];
+                if (defaultModel) {
+                    localStorage.setItem('llm-provider-model', defaultModel);
+                }
+            }
+            // This sets a default model every time you change the provider
+            document.getElementById('llmProviderSelect').addEventListener('change', (e) => {
+                const provider = e.target.value;
+                const defaultModel = defaultModels[provider];
+                if (defaultModel) {
+                    localStorage.setItem('llm-provider-model', defaultModel);
+                    console.log(`Default model for ${provider} set to ${defaultModel}`);
+                }
+            });
+            // **** END OF NEW CODE BLOCK ****
+
             testApiKeyBtn.addEventListener('click', async () => {
                 const provider = llmProvider.provider();
                 const apiKey = llmProvider.apiKey();
@@ -115,8 +140,7 @@
                         removeThinkingIndicator();
                         return;
                     }
-                    // **** THE ONLY CHANGE IS ON THE NEXT LINE ****
-                    const response = await llm.chat.create({ model: llmProvider.model(), messages: messages, tools: tools, tool_choice: 'auto' }); // CORRECTED LINE: Removed ".completions"
+                    const response = await llm.chat.create({ model: llmProvider.model(), messages: messages, tools: tools, tool_choice: 'auto' });
                     const responseMessage = response.choices[0].message;
                     messages.push(responseMessage);
                     if (responseMessage.content) { addMessageToUI('assistant', responseMessage.content); }
