@@ -1,6 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- NEW: Self-Healing Code to Create the Widget Placeholder ---
+    // This code ensures the placeholder for the LLM Provider exists, bypassing HTML typos.
+    if (!document.getElementById('llm-provider-selector')) {
+        console.log("LLM Provider placeholder not found. Creating it now.");
+        try {
+            const headerDiv = document.querySelector('header .d-flex');
+            if (headerDiv) {
+                const widgetPlaceholder = document.createElement('div');
+                widgetPlaceholder.id = 'llm-provider-selector';
+                widgetPlaceholder.style.minWidth = '300px';
+                headerDiv.appendChild(widgetPlaceholder);
+            } else {
+                console.error("Could not find the header div to attach the LLM Provider widget.");
+            }
+        } catch (e) {
+            console.error("Error creating LLM Provider placeholder:", e);
+        }
+    }
+
     // --- CONFIGURATION ---
-    // IMPORTANT: Get your free API key from https://aipipe.ai and paste it here.
     const AIPIPE_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImthdXRpa3N0dWR5QGdtYWlsLmNvbSJ9.nWSOYUOdkRUMhg3g4BB17rBf9s-UXD09PiR0UR_mMlQ';
 
     // --- DOM ELEMENTS ---
@@ -10,12 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const alertContainer = document.getElementById('alert-container');
 
     // --- LLM & AGENT INITIALIZATION ---
-    // This creates the UI widget for the user to enter their key.
+    // This will now reliably find the placeholder, because the code above created it.
     const llmProvider = new LlmProvider(); 
     
     let messages = [{
         role: 'system',
-        content: 'You are a helpful assistant. You have access to a set of tools to answer user questions. When you receive the results of a tool call, use them to formulate your response. If the results are insufficient, you can call another tool. Once you have enough information to answer the user fully, provide the final answer without making any more tool calls.'
+        content: 'You are a helpful assistant with access to tools. Use them to answer questions.'
     }];
 
     // --- TOOL DEFINITIONS ---
