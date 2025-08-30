@@ -9,7 +9,7 @@
     <style>
         body { background-color: #f8f9fa; }
         #chat-window { display: flex; flex-direction: column; }
-        #test-api-key-btn { margin-left: 8px; } /* Added for spacing */
+        #test-api-key-btn { margin-left: 8px; }
         .message { max-width: 80%; padding: 10px 15px; border-radius: 15px; margin-bottom: 10px; word-wrap: break-word; }
         .message.user { background-color: #0d6efd; color: white; align-self: flex-end; border-bottom-right-radius: 3px; }
         .message.assistant { background-color: #e9ecef; color: #333; align-self: flex-start; border-bottom-left-radius: 3px; }
@@ -48,12 +48,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const AIPIPE_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImthdXRpa3N0dWR5QGdtYWlsLmNvbSJ9.nWSOYUOdkRUMhg3g4BB17rBf9s-UXD09PiR0UR_mMlQ';
+            const AIPIPE_API_KEY = 'YOUR_AIPIPE_API_KEY_HERE';
             const chatWindow = document.getElementById('chat-window');
             const chatForm = document.getElementById('chat-form');
             const userInput = document.getElementById('user-input');
             const alertContainer = document.getElementById('alert-container');
-            const testApiKeyBtn = document.getElementById('test-api-key-btn'); // Get the new button
+            const testApiKeyBtn = document.getElementById('test-api-key-btn');
             const llmProvider = new LlmProvider(); 
             let messages = [{ role: 'system', content: 'You are a helpful assistant with access to tools. Use them to answer questions.' }];
             const tools = [
@@ -61,31 +61,25 @@
                 { type: 'function', function: { name: 'execute_javascript', description: 'Executes a snippet of JavaScript code and returns the result.', parameters: { type: 'object', properties: { code: { type: 'string', description: 'The JavaScript code to execute.' } }, required: ['code'] } } }
             ];
 
-            // NEW: Event Listener for the Test Button
             testApiKeyBtn.addEventListener('click', async () => {
                 const provider = llmProvider.provider();
                 const apiKey = llmProvider.apiKey();
-
                 if (!provider || !apiKey) {
                     showAlert('Please select a provider and enter an API key first.', 'warning');
                     return;
                 }
-
                 showAlert(`Testing connection to ${provider}...`, 'info');
-                
                 const providerDetails = {
                     openai: { url: 'https://api.openai.com/v1/models', headers: { 'Authorization': `Bearer ${apiKey}` } },
                     groq: { url: 'https://api.groq.com/openai/v1/models', headers: { 'Authorization': `Bearer ${apiKey}` } },
                     cohere: { url: 'https://api.cohere.com/v1/models', headers: { 'Authorization': `Bearer ${apiKey}` } },
                     google: { url: `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, headers: {} }
                 };
-
                 const details = providerDetails[provider];
                 if (!details) {
                     showAlert(`Test not implemented for provider: ${provider}`, 'warning');
                     return;
                 }
-
                 try {
                     const response = await fetch(details.url, { headers: details.headers });
                     if (!response.ok) {
@@ -111,6 +105,7 @@
                 await runConversation();
                 toggleInput(true);
             });
+
             async function runConversation() {
                 addThinkingIndicator();
                 try {
@@ -120,7 +115,8 @@
                         removeThinkingIndicator();
                         return;
                     }
-                    const response = await llm.chat.completions.create({ model: llmProvider.model(), messages: messages, tools: tools, tool_choice: 'auto' });
+                    // **** THE ONLY CHANGE IS ON THE NEXT LINE ****
+                    const response = await llm.chat.create({ model: llmProvider.model(), messages: messages, tools: tools, tool_choice: 'auto' }); // CORRECTED LINE: Removed ".completions"
                     const responseMessage = response.choices[0].message;
                     messages.push(responseMessage);
                     if (responseMessage.content) { addMessageToUI('assistant', responseMessage.content); }
