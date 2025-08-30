@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     // IMPORTANT: Get your free API key from https://aipipe.ai and paste it here.
-    const AIPIPE_API_KEY = 'YOUR_AIPIPE_API_KEY_HERE';
+    const AIPIPE_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImthdXRpa3N0dWR5QGdtYWlsLmNvbSJ9.nWSOYUOdkRUMhg3g4BB17rBf9s-UXD09PiR0UR_mMlQ';
 
     // --- DOM ELEMENTS ---
     const chatWindow = document.getElementById('chat-window');
