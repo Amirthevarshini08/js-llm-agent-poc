@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State Management ---
     let messages = []; // Stores the entire conversation history
 
-    // CORRECT SETUP: The keys are now managed by the UI, not hardcoded.
+    // CORRECT SETUP: The keys are managed by the UI, not hardcoded.
     const llmProvider = new LlmProvider({
         container: '#llm-provider-container'
     });
@@ -115,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error during agent turn:", error);
             bootstrapAlert(alertContainer, `API Error: ${error.message}`, 'danger');
             toggleInput(true);
-
         }
     }
 
